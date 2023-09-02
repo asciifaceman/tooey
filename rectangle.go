@@ -19,19 +19,24 @@ func NewRectangle(padding *Padding) Rectangle {
 // image.Rectangle
 type Rectangle struct {
 	image.Rectangle
+	// Padding should only affect objects within a rectangle
+	// not the outer bounds of the rectangle
 	Padding *Padding
 
 	sync.Mutex
 }
 
+// SetRect defines the boundaries of the rectangle
 func (r *Rectangle) SetRect(x1 int, y1 int, x2 int, y2 int) {
 	r.Rectangle = image.Rect(x1, y1, x2, y2)
 }
 
+// GetRect returns the current underlying image.Rectangle
 func (r *Rectangle) GetRect() image.Rectangle {
 	return r.Rectangle
 }
 
+// GetInnerRect returns the bounds of the inner padded rectangle
 func (r *Rectangle) GetInnerRect() image.Rectangle {
 	return image.Rect(r.InnerX1(), r.InnerY1(), r.InnerX2(), r.InnerY2())
 }

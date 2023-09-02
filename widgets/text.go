@@ -17,11 +17,15 @@ import (
 )
 
 // NewText returns a basic empty *Text
-func NewText() *Text {
+func NewText(theme *tooey.Theme) *Text {
+	if theme == nil {
+		theme = tooey.DefaultTheme
+	}
+
 	return &Text{
-		Element: *tooey.NewElement(),
+		Element: *tooey.NewElement(theme),
 		Wrap:    true,
-		Theme:   tooey.DefaultTheme,
+		Theme:   theme,
 	}
 }
 
@@ -34,6 +38,7 @@ type Text struct {
 	Wrap    bool
 }
 
+// SetTheme sets the theme for the Text and it's underlying Element
 func (t *Text) SetTheme(theme *tooey.Theme) {
 	t.Theme = theme
 	t.Element.SetTheme(theme)

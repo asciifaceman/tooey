@@ -13,12 +13,14 @@ const (
 	FlexRowReverse // NOT IMPLEMENTED
 )
 
-// NewContainer ...
-func NewContainer() *Container {
+// NewContainer returns a new default configuration Container
+//
+// A theme can be passed at this time or nil for defaults or to configure later
+func NewContainer(theme *Theme) *Container {
 	return &Container{
 		Direction: FlexRow,
-		Element:   *NewElement(),
-		Theme:     DefaultTheme,
+		Element:   *NewElement(theme),
+		Theme:     theme,
 	}
 }
 
