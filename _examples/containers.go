@@ -34,15 +34,17 @@ func main() {
 	outerContainer.Title.Content = "Containers Example"
 
 	text1 := widgets.NewText()
-	text1.Content = "Some text in text1"
+	text1.Content = "Some text in text1 which will appear pretty scrambled"
 	text1.SetTheme(themes.ThemeRetroTerminalGreen)
 
 	text2 := widgets.NewText()
-	text2.Content = "Some other text in text2"
+	text2.Title.Content = "Left Justified"
+	text2.Content = "Some other text in text2 which should attempt to wrap word-aware remove leading/trailing spaces depending on justification. Word-aware wrapping will only wrap a whole word if it could fit on a line by itself."
 	text2.SetTheme(themes.ThemeRetroTerminalGreen)
 
 	text3 := widgets.NewText()
-	text3.Content = "Some more yet other text in text3"
+	text3.Title.Content = "Right Justified"
+	text3.Content = "This is some big text to fill some space. This text should be justifying right once RightJustify is implemented (hopefully soon) and otherwise behaving the same as LeftJustified just opposite."
 	text3.SetTheme(themes.ThemeRetroTerminalGreen)
 
 	innerContainer := tooey.NewContainer()

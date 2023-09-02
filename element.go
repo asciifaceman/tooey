@@ -10,6 +10,7 @@ func NewElement() *Element {
 		Rectangle: NewRectangle(nil),
 		Border:    NewDefaultBorder(nil),
 		Title:     NewTitle(),
+		Theme:     DefaultTheme,
 	}
 
 	e.Rectangle.Padding = NewDefaultPadding()

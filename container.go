@@ -18,6 +18,7 @@ func NewContainer() *Container {
 	return &Container{
 		Direction: FlexRow,
 		Element:   *NewElement(),
+		Theme:     DefaultTheme,
 	}
 }
 
@@ -26,6 +27,7 @@ type Container struct {
 	Element
 	Direction FlexDirection
 	Children  []ContainerChild
+	Theme     *Theme
 }
 
 // ContainerChild which represents a member of the flex

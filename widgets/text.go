@@ -7,10 +7,13 @@
 package widgets
 
 import (
+	"fmt"
 	"image"
+	"unicode"
 
 	"github.com/asciifaceman/tooey"
 	"github.com/gdamore/tcell/v2"
+	"github.com/mattn/go-runewidth"
 )
 
 // NewText returns a basic empty *Text
@@ -18,6 +21,7 @@ func NewText() *Text {
 	return &Text{
 		Element: *tooey.NewElement(),
 		Wrap:    true,
+		Theme:   tooey.DefaultTheme,
 	}
 }
 
@@ -35,22 +39,293 @@ func (t *Text) SetTheme(theme *tooey.Theme) {
 	t.Element.SetTheme(theme)
 }
 
-// Draw ...
+// DrawableRect returns a set of ints representing
+// the calculated drawable space based on all padding
+// and positioning
+//
+// Returns image.Rectangle
+func (t *Text) DrawableRect() image.Rectangle {
+	// Calculate rect for drawable text
+	minX1 := t.InnerX1() + t.Padding.Left
+	minX2 := t.InnerX2() // - t.Padding.Right
+	minY1 := t.InnerY1() + t.Padding.Top
+	minY2 := t.InnerY2() // - t.Padding.Bottom
+
+	contentRect := image.Rect(minX1, minY1, minX2, minY2)
+	return contentRect
+}
+
+// Draw draws the text to its given Rect taking into account
+// left and right padding, wrapping, etc
 func (t *Text) Draw(s tcell.Screen) {
+	t.Element.Draw(s)
+
+	sw, sh := tooey.DrawableDimensions()
+
+	contentCellLength := len([]rune(t.Content))
+	if contentCellLength == 0 {
+		// If the string is empty let's exit
+		// early and save cycles
+		return
+	}
+
+	contentRect := t.DrawableRect()
+
+	if t.Wrap {
+		alignedContent := make([][]rune, sh)
+
+		for y := 0; y < sh; y++ {
+			alignedContent[y] = make([]rune, sw)
+		}
+
+		switch t.Theme.Text.Align {
+		case tooey.AlignLeft:
+			alignedContent = t.ProcessLeftAlignment(contentRect)
+		case tooey.AlignCenter:
+			//alignedContent = t.ProcessCenterAlignment(contentRect)
+		case tooey.AlignRight:
+			//alignedContent = t.ProcessRightAlignment(contentRect)
+		case tooey.AlignFull:
+			//alignedContent = t.ProcessFullAlignment(contentRect)
+		}
+
+		// aligned content is a precalculated grid so
+		// we don't need to worry about placement logic here
+		for y := 0; y < contentRect.Dy(); y++ {
+			for x := 0; x < contentRect.Dx(); x++ {
+				draw := alignedContent[y][x]
+
+				// handle zero width chars
+				var comb []rune
+				w := runewidth.RuneWidth(draw)
+				if w == 0 {
+					comb = []rune{draw}
+					draw = ' '
+					w = 1
+				}
+				s.SetContent(x+contentRect.Min.X, y+contentRect.Min.Y, draw, comb, t.Theme.Text.Style)
+			}
+		}
+	} else {
+
+		processed := t.ProcessUnwrapped(contentRect.Min.X, sw-contentRect.Min.X)
+		y := contentRect.Min.Y
+		for x := contentRect.Min.X; x < sw; x++ {
+			draw := processed[x]
+			// handle zero width chars
+			var comb []rune
+			w := runewidth.RuneWidth(draw)
+			if w == 0 {
+				comb = []rune{draw}
+				draw = ' '
+				w = 1
+			}
+			s.SetContent(x, y, draw, comb, t.Theme.Text.Style)
+		}
+
+	}
+
+}
+
+// ProcessUnwrapped ...
+//
+// returns [y][x]rune
+func (t *Text) ProcessUnwrapped(x int, maxWidth int) map[int]rune {
+	draw := t.Content
+	if runewidth.StringWidth(t.Content) > maxWidth {
+		draw = runewidth.Truncate(t.Content, maxWidth, string(tooey.ELLIPSES))
+
+	}
+
+	processed := map[int]rune{}
+
+	col := x
+	for _, r := range draw {
+
+		processed[x] = r
+		col++
+	}
+
+	return processed
+}
+
+type RuneRow struct {
+	Test [][]rune
+}
+
+func (t *Text) FillRuneBuffer(r image.Rectangle) [][]rune {
+	buf2 := make([][]rune, r.Dy())
+
+	for y := 0; y < r.Dy(); y++ {
+		buf2[y] = make([]rune, r.Dx())
+	}
+
+	for y := 0; y < r.Dy(); y++ {
+		for x := 0; x < r.Dx(); x++ {
+			buf2[y][x] = rune(' ')
+		}
+	}
+
+	return buf2
+}
+
+// ProcessLeftAlignment ...
+//
+// returns [y][x]rune
+func (t *Text) ProcessLeftAlignment(r image.Rectangle) [][]rune {
+
+	content := []rune(t.Content)
+	contentLength := len(content)
+	processed := t.FillRuneBuffer(r)
+
+	if contentLength < r.Dx() {
+		for x := 0; x < contentLength; x++ {
+			processed[0][x] = content[x]
+		}
+		return processed
+	}
+
+	offset := 0
+	var previousRune rune
+
+	for y := 0; y < r.Dy(); y++ {
+
+		for x := 0; x < r.Dx(); x++ {
+
+			if x == 0 {
+				// trim leading space on first cell of a row
+				if content[offset] == ' ' {
+					offset++
+				}
+			}
+
+			// Attempt to wrap early if a word won't fit
+			// but only if it fits in the drawable width to start with
+			if !unicode.IsSpace(content[offset]) {
+				if unicode.IsSpace(previousRune) {
+					var word []rune
+					word = append(word, content[offset])
+					for i := offset + 1; i < contentLength; i++ {
+						if unicode.IsSpace(content[i]) {
+							break
+						}
+						word = append(word, content[i])
+					}
+					if len(word) > (r.Dx()-x) && len(word) < (r.Dx()) {
+						break
+					}
+				}
+			}
+
+			processed[y][x] = content[offset]
+			previousRune = content[offset]
+			offset++
+
+			if offset == contentLength {
+				return processed
+			}
+
+		}
+	}
+
+	//content := []rune(t.Content)
+	//contentLength := len(content)
+	//maxLineWidth := r.Dx()
+	//
+	//y := r.Min.Y
+	//x := r.Min.X
+	//y2 := r.Max.Y
+	//x2 := r.Max.X
+	//
+	return processed
+}
+
+// ProcessRightAlignment ...
+func (t *Text) ProcessRightAlignment(r image.Rectangle) map[int]map[int]rune {
+	processed := map[int]map[int]rune{}
+
+	return processed
+}
+
+// ProcessCenterAlignment ...
+func (t *Text) ProcessCenterAlignment(r image.Rectangle) map[int]map[int]rune {
+	processed := map[int]map[int]rune{}
+
+	return processed
+}
+
+// ProcessFullAlignment ...
+func (t *Text) ProcessFullAlignment(r image.Rectangle) map[int]map[int]rune {
+	processed := map[int]map[int]rune{}
+
+	return processed
+}
+
+// Draw ...
+func (t *Text) Draw2(s tcell.Screen) {
 	t.Element.Draw(s)
 
 	row := t.Rectangle.Min.Y + t.Padding.Top
 	col := t.Rectangle.Min.X + t.Padding.Left
 
-	for _, r := range t.Content {
+	// TODO: Handle zero width characters
+	// TODO: Handle word-aware wrapping
 
-		// TODO: Handle zero width characters
+	wrapped := "&"
+	previousRune := rune(wrapped[0])
+	var currentWord string
 
+	for i, r := range t.Content {
+
+		// Lookahead
+		if !unicode.IsSpace(r) {
+			if unicode.IsSpace(previousRune) {
+			INNER:
+				for ix := i; i < len(t.Content); i++ {
+					runeIter := rune(t.Content[ix])
+					if unicode.IsSpace(runeIter) {
+						break INNER
+					}
+					currentWord = fmt.Sprintf("%s%v", currentWord, runeIter)
+				}
+
+				// look ahead to find word
+				if len([]rune(currentWord)) > (t.Rectangle.X2()-t.Padding.Right)-col {
+					wrapped := "&"
+					previousRune = rune(wrapped[0])
+					row++
+					col = t.Rectangle.X1() + t.Padding.Left
+					continue
+				}
+
+			}
+		} else {
+			// if alignment is full make sure we aren't starting a new line on a space
+			if t.Theme.Text.Align == tooey.AlignFull {
+				previousRune = r
+				continue
+			}
+			// see if I am at the beginning of the width and
+			// skip spaces
+		}
+
+		// if character is a newline advance row and continue
+		if fmt.Sprintf("%v", r) == "\n" {
+			previousRune = r
+			row++
+			col = t.Rectangle.X1() + t.Padding.Left
+			continue
+		}
+
+		// Write the cell
 		s.SetContent(col, row, r, nil, t.Theme.Title.Style)
 		col++
 
+		previousRune = r
+
 		if t.Wrap {
 			if col > t.Rectangle.Max.X-t.Padding.Right {
+				// Wordwrap
 				row++
 				col = t.Rectangle.Min.X + t.Padding.Left
 			}

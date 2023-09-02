@@ -41,6 +41,7 @@ type Theme struct {
 	Element Style
 	Border  Style
 	Title   Style
+	Text    Style
 	Chars   *Chars
 }
 
@@ -50,5 +51,6 @@ var DefaultTheme = &Theme{
 	Element: StyleClear,
 	Border:  StyleDefault,
 	Title:   StyleDefault,
+	Text:    StyleDefault,
 	Chars:   NewDefaultChars(),
 }

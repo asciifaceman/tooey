@@ -33,6 +33,7 @@ const (
 // Style represents the style of one terminal cell
 type Style struct {
 	tcell.Style
+	Align Alignment
 }
 
 // StyleClear represents an empty Style, with no colors or modifiers
@@ -43,11 +44,13 @@ var StyleClear = Style{
 // StyleDefault represents a simple white on black default
 var StyleDefault = Style{
 	Style: tcell.StyleDefault.Foreground(ColorWhite).Background(ColorBlack),
+	Align: AlignFull,
 }
 
 // StyleClassicTerminal is a classic green-on-black terminal styling
 var StyleClassicTerminal = Style{
 	Style: tcell.StyleDefault.Foreground(tcell.ColorLightGreen).Background(tcell.ColorBlack),
+	Align: AlignFull,
 }
 
 // Value returns the underlying tcell.Style of this wrapper
