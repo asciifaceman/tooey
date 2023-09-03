@@ -9,7 +9,6 @@ package widgets
 import (
 	"fmt"
 	"image"
-	"strings"
 	"unicode"
 
 	"github.com/asciifaceman/tooey"
@@ -250,8 +249,6 @@ func (t *Text) ProcessCenterAlignment(r image.Rectangle) [][]rune {
 
 // ProcessFullAlignment ...
 func (t *Text) ProcessFullAlignment(r image.Rectangle) [][]rune {
-	cleaned := strings.ReplaceAll(t.Content, "  ", " ")
-	t.Content = cleaned
 
 	leftAligned := t.ProcessLeftAlignment(r)
 

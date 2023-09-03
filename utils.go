@@ -140,7 +140,8 @@ func SpreadWhitespaceAcrossSliceInterior(slice []rune) []rune {
 	newSlice := ShiftRuneWhitespaceToLeft(slice)
 
 	// Move left whitespace inwards
-	newSlice = MoveLeftWhitespaceInwards(newSlice)
+	newSlice = NormalizeLeftWhitespace(newSlice)
+	//newSlice = NormalizeLeftWhitespace(newSlice)
 
 	return newSlice
 }
@@ -148,18 +149,26 @@ func SpreadWhitespaceAcrossSliceInterior(slice []rune) []rune {
 // CheckWhichPositionHasFewest returns index of the position with the lowest
 // count
 func CheckWhichPositionHasFewest(positions []int) int {
-	lowestCount := 0
-
-	for _, i := range positions {
-		if lowestCount >= i {
-			continue
-		}
-		lowestCount = i
+	lowestIndex := 0
+	lowestCount, _ := GetMaxIntFromSlice(positions)
+	if lowestCount == 0 {
+		// TODO: figure out what to do here, tighten this up
+		return 0
 	}
-	return lowestCount
+
+	for i, count := range positions {
+
+		if count < lowestCount {
+			lowestCount = count
+			lowestIndex = i
+		}
+
+	}
+
+	return lowestIndex
 }
 
-func MoveLeftWhitespaceInwards(slice []rune) []rune {
+func NormalizeLeftWhitespace(slice []rune) []rune {
 	wordCount := CountWordsInRuneSlice(slice)
 
 	if !ContainsNonWhitespace(slice) || len(slice) < 1 || wordCount < 2 {
@@ -191,16 +200,9 @@ OUTER:
 					}
 				}
 
-				// we have to wait to do anything until we've passed our first non
-				// whitespace character so it's "inside"
-				//if !unicode.IsSpace(r) {
-				//	interior = true
-				//}
 				if i == len(newSlice) {
-					// if we reached the end
-					// without finding a spot
-					// give up
-					//continue
+					// if we reached the end without finding a spot
+					// give up continue
 					break OUTER
 				}
 				if bestIndex == wordIndex {
