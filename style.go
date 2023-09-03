@@ -20,16 +20,6 @@ const (
 	ColorWhite   tcell.Color = tcell.ColorWhite
 )
 
-type Modifier uint
-
-const (
-	// ModifierClear clears any modifiers
-	ModifierClear     Modifier = 0
-	ModifierBold      Modifier = 1 << 9
-	ModifierUnderline Modifier = 1 << 10
-	ModifierReverse   Modifier = 1 << 11
-)
-
 // Style represents the style of one terminal cell
 type Style struct {
 	tcell.Style
@@ -51,13 +41,4 @@ var StyleDefault = Style{
 var StyleClassicTerminal = Style{
 	Style: tcell.StyleDefault.Foreground(tcell.ColorLightGreen).Background(tcell.ColorBlack),
 	Align: AlignFull,
-}
-
-// Value returns the underlying tcell.Style of this wrapper
-func (s *Style) Value() tcell.Style {
-	return s.Style
-}
-
-func NewStyle(fg tcell.Color, args ...interface{}) Style {
-	return StyleClear
 }

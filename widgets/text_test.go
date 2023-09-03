@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/asciifaceman/tooey"
+	"github.com/asciifaceman/tooey/themes"
 )
 
 func TestText(t *testing.T) {
@@ -19,11 +20,11 @@ func TestText(t *testing.T) {
 		t.Fatal("Failed to initialize simulation screen")
 	}
 	defer tooey.Close()
-	//w, h := tooey.DrawableDimensions()
+	w, _ := tooey.DrawableDimensions()
 
 	s := tooey.GetRootScreen()
 
-	txt := NewText(tooey.DefaultTheme)
+	txt := NewText(themes.ThemeRetroTerminalGreen)
 	txt.Content = "TEST"
 	txt.SetRect(0, 0, 20, 20)
 	txt.Draw(s)
@@ -42,5 +43,29 @@ func TestText(t *testing.T) {
 		}
 
 	}
+
+	s.Clear()
+
+	fullAlignTheme := *themes.ThemeRetroTerminalGreen
+	fullAlignTheme.Text.Align = tooey.AlignFull
+	txt2 := NewText(&fullAlignTheme)
+	txt2.Content = "     TEST TEST TEST TEST TEST TEST TEST  TEST TEST TEST TEST  TEST TEST TEST TEST TEST TEST TEST     "
+	txt2.SetRect(0, 0, 20, 10)
+	txt2.Draw(s)
+
+	for y := 0; y < 10; y++ {
+		if y == 0 || y == 1 {
+			continue
+		}
+		for x := 0; x < w; x++ {
+			if x > 20 {
+				continue
+			}
+			v, _, _, _ := s.GetContent(x, y)
+			t.Logf("X: %d Y: %d| rune: [%s]", x, y, string(v))
+		}
+	}
+	// need to find a way to actually write tests for the visual elements
+	// don't quite know how to approach this
 
 }
