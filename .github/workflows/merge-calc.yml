@@ -1,28 +1,15 @@
-# This workflow will build a golang project for testing purposes
+# This workflow will update the coverage svg
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: Go-pr-test
+name: test-coverage-on-merge
 
 on:
+  # Allow manually triggering
+  # See: https://github.blog/changelog/2020-07-06-github-actions-manual-triggers-with-workflow_dispatch/
+  workflow_dispatch:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - README.md
-      - FORK.md
-      - AUTHORS.md
-      - CHANGELOG.md
-      - .gitignore
-      - .github/**
-      - _legacy/**
-      - _examples/**
-      - _assets/**
-      - _test/**
-      - LICENSE
-      - Makefile
-  pull_request:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
 
 env:
   GO_VER: 1.20.3
@@ -52,31 +39,14 @@ jobs:
         threshold-file: 0
         threshold-package: 0
         threshold-total: 20
+
     - name: make coverage badge
       uses: action-badges/core@0.2.2
-      if: github.event.created
+      if: contains(github.ref, 'main')
       with:
         label: coverage
         message: ${{ steps.coverage.outputs.badge-text }}
         message-color: ${{ steps.coverage.outputs.badge-color }}
-        file-name: ${{ github.event.number }}-coverage.svg
-        # 
+        file-name: coverage.svg
         badge-branch: badges ## orphan branch where badge will be committed
         github-token: "${{ secrets.GITHUB_TOKEN }}"
-
-  build:
-    runs-on: ubuntu-latest
-      
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: ${{ env.GO_VER }}
-
-    - name: Build race
-      run: go build -race
-      env:
-        GOOS: 'linux'
-        GOARCH: 'amd64'

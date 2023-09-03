@@ -1,12 +1,12 @@
-# This workflow will build a golang project for testing purposes
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+# Attempt to add a badge to a given PR that will
+# update coverage
 
-name: Go-pr-test
+name: generate-pr-coverage-badge
 
 on:
   push:
     branches:
-      - main
+        - main
     paths-ignore:
       - README.md
       - FORK.md
@@ -21,8 +21,7 @@ on:
       - LICENSE
       - Makefile
   pull_request:
-    branches:
-      - main
+    types: [opened]
 
 env:
   GO_VER: 1.20.3
@@ -52,31 +51,16 @@ jobs:
         threshold-file: 0
         threshold-package: 0
         threshold-total: 20
-    - name: make coverage badge
-      uses: action-badges/core@0.2.2
+
+    - name: add badge in PR comment
+      uses: actions/github-script@v6
       if: github.event.created
       with:
-        label: coverage
-        message: ${{ steps.coverage.outputs.badge-text }}
-        message-color: ${{ steps.coverage.outputs.badge-color }}
-        file-name: ${{ github.event.number }}-coverage.svg
-        # 
-        badge-branch: badges ## orphan branch where badge will be committed
-        github-token: "${{ secrets.GITHUB_TOKEN }}"
-
-  build:
-    runs-on: ubuntu-latest
-      
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: ${{ env.GO_VER }}
-
-    - name: Build race
-      run: go build -race
-      env:
-        GOOS: 'linux'
-        GOARCH: 'amd64'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: "![coverage](https://raw.githubusercontent.com/asciifaceman/tooey/badges/.badges/main/${{ github.event.number }}-coverage.svg)"
+          })
