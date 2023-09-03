@@ -12,7 +12,16 @@ func TestText(t *testing.T) {
 		Test that text draws
 
 		I think this test could be dramatically improved but I wanted
-		to have something here
+		to have something here that was at least consuming the code
+
+		Testing the outputs is going to be more difficult:
+
+		Do we exhaustively check every cell for the correct values and risk
+		having to rewrite the entire test scenario if something is tweaked?
+
+		Is there a way to somewhat dynamically determine what things should be?
+
+		I do not know.
 	*/
 
 	err := tooey.InitSim()
