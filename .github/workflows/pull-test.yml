@@ -34,9 +34,9 @@ jobs:
         profile: cover.out
         local-prefix: github.com/asciifaceman/tooey
         # these thresholds are so low right now, we will improve
-        threshold-file: 0
-        threshold-package: 0
-        threshold-total: 20
+        threshold-file: 50
+        threshold-package: 50
+        threshold-total: 50
 
   race-build:
     runs-on: ubuntu-latest

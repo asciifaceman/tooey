@@ -11,7 +11,7 @@ import (
 
 var scrn tcell.Screen
 
-// Init is refactor of init for tcell operation
+// Init initializes the screen and sets default styling
 func Init() error {
 	// This says it is deprecated and you only need to import the package
 	// but autoimport removes unused imports so...
@@ -34,6 +34,20 @@ func Init() error {
 	return nil
 }
 
+// InitSim is just to support testing
+func InitSim() error {
+	s := tcell.NewSimulationScreen("")
+	if err := s.Init(); err != nil {
+		return err
+	}
+
+	defaultStyle := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
+	s.SetStyle(defaultStyle)
+	s.Clear()
+	scrn = s
+	return nil
+}
+
 // Close is refactor of close
 func Close() {
 	maybePanic := recover()
@@ -44,8 +58,8 @@ func Close() {
 }
 
 // GetRootScreen returns the root screen tooey writes to
-func GetRootScreen() *tcell.Screen {
-	return &scrn
+func GetRootScreen() tcell.Screen {
+	return scrn
 }
 
 // PollEvents returns a poll of events for the

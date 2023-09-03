@@ -21,17 +21,6 @@ func DoSliceTest(t *testing.T, c *TestCase) {
 	}
 }
 
-func DoSliceTestMapWithFunc(t *testing.T, tests map[string]string, f func([]rune) []rune) {
-	for content, expected := range tests {
-		rContent := []rune(content)
-		result := f(rContent)
-
-		if string(result) != expected {
-			t.Fatalf("Expected [%s] (%v) to equal [%s] (%v) | Test Case: %s", string(result), result, expected, []rune(expected), content)
-		}
-	}
-}
-
 func TestShiftRuneSliceRight(t *testing.T) {
 	testID := "TestShiftRuneSliceRight"
 	tests := []*TestCase{
@@ -278,4 +267,89 @@ func TestCheckWhichPositionHasFewest(t *testing.T) {
 		t.Fatalf("Failed to detect position with lowest count, got [%d]", d)
 	}
 
+}
+
+func TestInterfaceSlice(t *testing.T) {
+	testID := "TestInterfaceSlice"
+	test1Content := []string{
+		"this is a string",
+		"this is another string",
+	}
+	test2Content := 5
+	test3Content := rune('#')
+	test1 := []interface{}{
+		test1Content,
+		test2Content,
+		test3Content,
+	}
+	var i interface{} = test1
+
+	d := InterfaceSlice(i)
+
+	if len(d) != 3 {
+		t.Fatalf("[%s] - Expected length of result to be 3 but got [%d]", testID, len(d))
+	}
+
+	for i, result := range d {
+		if i == 0 {
+			val, ok := result.([]string)
+			if !ok {
+				t.Fatal("Failed to unpack expected string slice from interface")
+			}
+			if len(val) != 2 {
+				t.Fatalf("Count of string slice is wrong. Expected 2 but got %d", len(val))
+			}
+			for i, str := range val {
+				if test1Content[i] != str {
+					t.Fatalf("Expected value at index [%d] to be [%s] but got [%s]", i, test1Content[i], str)
+				}
+			}
+		} else if i == 1 {
+			val, ok := result.(int)
+			if !ok {
+				t.Fatal("Failed to unpack expected int from interface")
+			}
+			if val != 5 {
+				t.Fatalf("Expected to get int 5 but got %d", val)
+			}
+		} else if i == 2 {
+			val, ok := result.(rune)
+			if !ok {
+				t.Fatal("Failed to unpack expected rune from interface")
+			}
+			if val != test3Content {
+				t.Fatalf("Expected to get rune %s but got %s", string(test3Content), string(val))
+			}
+		}
+	}
+
+}
+
+func TestCountWhiteSpace(t *testing.T) {
+	test1 := "this should have 4 whitespaces"
+	test1r := []rune(test1)
+	d := CountWhiteSpace(test1r)
+	if d != 4 {
+		t.Fatalf("Expected 4 whitespaces but counted %d", d)
+	}
+}
+
+func TestTrimString(t *testing.T) {
+	test1Content := "first string"
+	test1Expected := "first…"
+
+	d := TrimString(test1Content, 6)
+	if d != test1Expected {
+		t.Fatalf("Expected %s to match %s", d, test1Expected)
+	}
+
+	d2 := TrimString(test1Content, 0)
+	if d2 != "" {
+		t.Fatal("Expected string to be truncated and it wasn't")
+	}
+
+	d3 := TrimString(test1Content, len(test1Content))
+	if d3 != test1Content {
+		t.Fatal("Expected string to be untouched but it was altered")
+	}
 }
