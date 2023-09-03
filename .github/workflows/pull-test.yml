@@ -1,28 +1,12 @@
-# This workflow will update the coverage svg
+# This workflow runs tests and a -race build on PR commits 
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
-name: test-coverage-on-merge
+name: test-pull-requests
 
 on:
-  # Allow manually triggering
-  # See: https://github.blog/changelog/2020-07-06-github-actions-manual-triggers-with-workflow_dispatch/
-  workflow_dispatch:
-  push:
+  pull_request:
     branches:
       - main
-    paths-ignore:
-      - README.md
-      - FORK.md
-      - AUTHORS.md
-      - CHANGELOG.md
-      - .gitignore
-      - .github/**
-      - _legacy/**
-      - _examples/**
-      - _assets/**
-      - _test/**
-      - LICENSE
-      - Makefile
 
 env:
   GO_VER: 1.20.3
@@ -30,6 +14,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v3
 
@@ -42,7 +27,7 @@ jobs:
       run: go test --timeout=1m --coverprofile cover.out -v ./...
   
     - name: check test coverage
-      id: coverage
+      id: cov
       uses: vladopajic/go-test-coverage@v2
       with:       
         # Configure action by specifying input parameters individually (option 2)
@@ -52,3 +37,20 @@ jobs:
         threshold-file: 0
         threshold-package: 0
         threshold-total: 20
+
+  race-build:
+    runs-on: ubuntu-latest
+      
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ env.GO_VER }}
+
+    - name: Build race
+      run: go build -race
+      env:
+        GOOS: 'linux'
+        GOARCH: 'amd64'

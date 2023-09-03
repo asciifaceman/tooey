@@ -1,6 +1,10 @@
 # Tooey
 ![coverage](https://raw.githubusercontent.com/asciifaceman/tooey/badges/.badges/main/coverage.svg)
 
+![example workflow](https://github.com/asciifaceman/tooey/actions/workflows/merge-calc.yml/badge.svg)
+
+[![Go Coverage](https://github.com/asciifaceman/tooey/wiki/coverage.svg)](https://raw.githack.com/wiki/asciifaceman/tooey/coverage.html)
+
 Tooey is a cross-platform and customizable terminal dashboard and widget library built on top of [tcell](https://github.com/gdamore/tcell) (formerly termbox-go pre-fork). This project started as a fork of the fantastic [termui](https://github.com/gizak/termui) but then turned into a ground-up rewrite.
 
 See [FORK.MD](FORK.md) for details of the original fork and README.md
