@@ -17,6 +17,7 @@ on:
       - _legacy/**
       - _examples/**
       - _assets/**
+      - _test/**
       - LICENSE
       - Makefile
   pull_request:
@@ -39,6 +40,17 @@ jobs:
 
     - name: Run tests
       run: go test --timeout=1m --coverprofile cover.out -v ./...
+  
+    - name: check test coverage
+      uses: vladopajic/go-test-coverage@v2
+      with:       
+        # Configure action by specifying input parameters individually (option 2)
+        profile: cover.out
+        local-prefix: github.com/asciifaceman/tooey
+        # these thresholds are so low right now, we will improve
+        threshold-file: 10
+        threshold-package: 10
+        threshold-total: 10
 
   build:
     runs-on: ubuntu-latest
@@ -50,33 +62,9 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: ${{ env.GO_VER }}
-        
-    # Deprecated date will removed soon likely if ldflags don't return
-    - name: Get current date
-      id: date
-      run: |
-        echo "date=$(date)" >> $GITHUB_ENV
 
     - name: Build race
       run: go build -race
       env:
         GOOS: 'linux'
         GOARCH: 'amd64'
-
-# not producing artifacts
-#    - name: Build linux@amd64
-#      run: go build
-#      env:
-#        GOOS: 'linux'
-#        GOARCH: 'amd64' # Wonder if I can matrix this with arm64 as well
-#    
-#    - name: Clean up amd64
-#      run: rm -rf line
-#
-#    - name: Build linux@arm64
-#      run: go build
-#      env:
-#        GOOS: 'linux'
-#        GOARCH: 'arm64' # Wonder if I can matrix this with arm64 as well
-
-      
