@@ -65,6 +65,16 @@ func TestText(t *testing.T) {
 			t.Logf("X: %d Y: %d| rune: [%s]", x, y, string(v))
 		}
 	}
+
+	s.Clear()
+
+	rightAlignTheme := *themes.ThemeRetroTerminalGreen
+	rightAlignTheme.Text.Align = tooey.AlignRight
+	txt3 := NewText(&rightAlignTheme)
+	txt3.Content = "This should right align but I don't know how to test that just yet"
+	txt3.SetRect(0, 0, 10, 5)
+	txt3.Draw(s)
+
 	// need to find a way to actually write tests for the visual elements
 	// don't quite know how to approach this
 
