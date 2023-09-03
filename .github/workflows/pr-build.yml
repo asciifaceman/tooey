@@ -63,19 +63,20 @@ jobs:
         GOOS: 'linux'
         GOARCH: 'amd64'
 
-    - name: Build linux@amd64
-      run: go build
-      env:
-        GOOS: 'linux'
-        GOARCH: 'amd64' # Wonder if I can matrix this with arm64 as well
-    
-    - name: Clean up amd64
-      run: rm -rf line
-
-    - name: Build linux@arm64
-      run: go build
-      env:
-        GOOS: 'linux'
-        GOARCH: 'arm64' # Wonder if I can matrix this with arm64 as well
+# not producing artifacts
+#    - name: Build linux@amd64
+#      run: go build
+#      env:
+#        GOOS: 'linux'
+#        GOARCH: 'amd64' # Wonder if I can matrix this with arm64 as well
+#    
+#    - name: Clean up amd64
+#      run: rm -rf line
+#
+#    - name: Build linux@arm64
+#      run: go build
+#      env:
+#        GOOS: 'linux'
+#        GOARCH: 'arm64' # Wonder if I can matrix this with arm64 as well
 
       
