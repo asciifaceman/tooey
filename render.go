@@ -22,21 +22,7 @@ type Drawable interface {
 	sync.Locker
 }
 
-// Drawable represents an item that can be Rendered
-//type Drawable interface {
-//	GetRect() image.Rectangle
-//	// SetRect x1, y1, x2, y2
-//	SetRect(int, int, int, int)
-//	X1() int
-//	X2() int
-//	Y1() int
-//	Y2() int
-//	DrawableWidth() int
-//	DrawableHeight() int
-//	Draw(tcell.Screen)
-//	sync.Locker
-//}
-
+// Render locks and draws the passed Drawables
 func Render(items ...Drawable) {
 	for _, item := range items {
 		item.Lock()
@@ -45,24 +31,3 @@ func Render(items ...Drawable) {
 	}
 	scrn.Show()
 }
-
-//func Render2(items ...Drawable) {
-//	for _, item := range items {
-//		buf := NewBuffer(item.GetRect())
-//		item.Lock()
-//		item.Draw(buf)
-//		item.Unlock()
-//		//for point, cell := range buf.CellMap {
-//		//	if point.In(buf.Rectangle) {
-//		//		fmt.Println(cell)
-//		//		//tb.SetCell(
-//		//		//	point.X, point.Y,
-//		//		//	cell.Rune,
-//		//		//	tb.Attribute(cell.Style.Fg+1)|tb.Attribute(cell.Style.Modifier), tb.Attribute(cell.Style.Bg+1),
-//		//		//)
-//		//	}
-//		//}
-//	}
-//	//tcell.Fl
-//}
-//
