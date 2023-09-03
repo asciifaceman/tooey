@@ -30,6 +30,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v3
 
@@ -42,7 +43,7 @@ jobs:
       run: go test --timeout=1m --coverprofile cover.out -v ./...
   
     - name: check test coverage
-      id: coverage
+      id: cov
       uses: vladopajic/go-test-coverage@v2
       with:       
         # Configure action by specifying input parameters individually (option 2)
@@ -52,16 +53,6 @@ jobs:
         threshold-file: 0
         threshold-package: 0
         threshold-total: 20
-    - name: make coverage badge
-      uses: action-badges/core@0.2.2
-      with:
-        label: coverage
-        message: ${{ steps.coverage.outputs.badge-text }}
-        message-color: ${{ steps.coverage.outputs.badge-color }}
-        file-name: ${{ github.event.number }}-coverage.svg
-        # 
-        badge-branch: badges ## orphan branch where badge will be committed
-        github-token: "${{ secrets.GITHUB_TOKEN }}"
 
   build:
     runs-on: ubuntu-latest

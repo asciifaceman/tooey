@@ -8,8 +8,21 @@ on:
   # See: https://github.blog/changelog/2020-07-06-github-actions-manual-triggers-with-workflow_dispatch/
   workflow_dispatch:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - FORK.md
+      - AUTHORS.md
+      - CHANGELOG.md
+      - .gitignore
+      - .github/**
+      - _legacy/**
+      - _examples/**
+      - _assets/**
+      - _test/**
+      - LICENSE
+      - Makefile
 
 env:
   GO_VER: 1.20.3
@@ -39,14 +52,3 @@ jobs:
         threshold-file: 0
         threshold-package: 0
         threshold-total: 20
-
-    - name: make coverage badge
-      uses: action-badges/core@0.2.2
-      if: contains(github.ref, 'main')
-      with:
-        label: coverage
-        message: ${{ steps.coverage.outputs.badge-text }}
-        message-color: ${{ steps.coverage.outputs.badge-color }}
-        file-name: coverage.svg
-        badge-branch: badges ## orphan branch where badge will be committed
-        github-token: "${{ secrets.GITHUB_TOKEN }}"
