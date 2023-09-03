@@ -54,7 +54,6 @@ jobs:
         threshold-total: 20
     - name: make coverage badge
       uses: action-badges/core@0.2.2
-      if: github.event.created
       with:
         label: coverage
         message: ${{ steps.coverage.outputs.badge-text }}

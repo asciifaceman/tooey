@@ -27,7 +27,7 @@ env:
   GO_VER: 1.20.3
 
 jobs:
-  test:
+  generate-pr-badge:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
