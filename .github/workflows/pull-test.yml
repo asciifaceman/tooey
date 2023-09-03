@@ -1,0 +1,56 @@
+# This workflow runs tests and a -race build on PR commits 
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: test-pull-requests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  GO_VER: 1.20.3
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ env.GO_VER }}
+
+    - name: Run tests
+      run: go test --timeout=1m --coverprofile cover.out -v ./...
+  
+    - name: check test coverage
+      id: cov
+      uses: vladopajic/go-test-coverage@v2
+      with:       
+        # Configure action by specifying input parameters individually (option 2)
+        profile: cover.out
+        local-prefix: github.com/asciifaceman/tooey
+        # these thresholds are so low right now, we will improve
+        threshold-file: 0
+        threshold-package: 0
+        threshold-total: 20
+
+  race-build:
+    runs-on: ubuntu-latest
+      
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ env.GO_VER }}
+
+    - name: Build race
+      run: go build -race
+      env:
+        GOOS: 'linux'
+        GOARCH: 'amd64'

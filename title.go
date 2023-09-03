@@ -8,10 +8,14 @@ import (
 )
 
 // NewTitle returns a basic empty title
-func NewTitle() *Title {
+func NewTitle(theme *Theme) *Title {
+	if theme == nil {
+		theme = DefaultTheme
+	}
+
 	return &Title{
-		Padding: NewDefaultPadding(),
-		Style:   StyleDefault,
+		Padding: NewTitlePadding(),
+		Theme:   theme,
 	}
 }
 
@@ -19,7 +23,7 @@ func NewTitle() *Title {
 type Title struct {
 	Content string
 	Padding *Padding
-	Style   Style
+	Theme   *Theme
 }
 
 // Draw the title
@@ -27,6 +31,9 @@ func (t *Title) Draw(s tcell.Screen, rect *Rectangle) {
 	if len(t.Content) == 0 {
 		return
 	}
+
+	w := rect.DrawableWidth()
+	//draw := TrimString(t.Content, w-1)
 
 	row := rect.Y1()
 	col := rect.X1() + rect.Padding.Left
@@ -40,13 +47,15 @@ func (t *Title) Draw(s tcell.Screen, rect *Rectangle) {
 		rightPad = strings.Repeat(" ", t.Padding.Right)
 	}
 
-	t.Content = fmt.Sprintf("%s%s%s", leftPad, t.Content, rightPad)
+	draw := TrimString(t.Content, w-len(leftPad)-len(rightPad)-1)
 
-	for _, r := range t.Content {
-		s.SetContent(col, row, r, nil, t.Style.Style)
+	draw = fmt.Sprintf("%s%s%s", leftPad, draw, rightPad)
+
+	for _, r := range draw {
+		s.SetContent(col, row, r, nil, t.Theme.Title.Style)
 		col++
 
-		if col > rect.X2()-rect.Padding.Right {
+		if col+1 > rect.X2()-rect.Padding.Right {
 			// add ... at some point
 			break
 		}

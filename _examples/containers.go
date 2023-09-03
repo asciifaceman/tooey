@@ -10,6 +10,7 @@ import (
 	"github.com/asciifaceman/tooey"
 	"github.com/asciifaceman/tooey/themes"
 	"github.com/asciifaceman/tooey/widgets"
+	"github.com/gdamore/tcell/v2"
 )
 
 /*
@@ -27,34 +28,41 @@ func main() {
 
 	x, y := tooey.DrawableDimensions()
 
-	outerContainer := tooey.NewContainer()
+	outerContainer := tooey.NewContainer(themes.ThemeRetroTerminalOrange)
+	outerContainer.SetBorderCharacters(tooey.DoubleBarBorderChars)
 	outerContainer.Direction = tooey.FlexRow
-	outerContainer.SetTheme(themes.ThemeRetroTerminalOrange)
 	outerContainer.SetRect(0, 0, x, y)
 	outerContainer.Title.Content = "Containers Example"
 
-	text1 := widgets.NewText()
+	text1 := widgets.NewText(themes.ThemeRetroTerminalGreen)
+	text1.SetBorderCharacters(tooey.CornersOnlyBorderChars)
 	text1.Content = "Some text in text1 which will appear pretty scrambled"
-	text1.SetTheme(themes.ThemeRetroTerminalGreen)
 
-	text2 := widgets.NewText()
+	text2 := widgets.NewText(themes.ThemeRetroTerminalGreen)
 	text2.Title.Content = "Left Justified"
-	text2.Content = "Some other text in text2 which should attempt to wrap word-aware remove leading/trailing spaces depending on justification. Word-aware wrapping will only wrap a whole word if it could fit on a line by itself."
+	text2.Content = "Some other        text in text2 which should attempt       to wrap word-aware remove leading/trailing spaces depending on justification. Word-aware wrapping will only wrap a whole word if it could fit on a line by itself.     "
 	text2.SetTheme(themes.ThemeRetroTerminalGreen)
 
-	text3 := widgets.NewText()
-	text3.Title.Content = "Right Justified"
-	text3.Content = "This is some big text to fill some space. This text should be justifying right once RightJustify is implemented (hopefully soon) and otherwise behaving the same as LeftJustified just opposite."
-	text3.SetTheme(themes.ThemeRetroTerminalGreen)
+	fullAlignTheme := *themes.ThemeRetroTerminalGreen
+	fullAlignTheme.Text.Align = tooey.AlignFull
+	text2Full := widgets.NewText(&fullAlignTheme)
+	text2Full.Title.Content = "Full Justified"
+	text2Full.Content = "Some other        text in text2 which should attempt to wrap word-aware remove leading/trailing spaces depending on justification. Word-aware wrapping will only wrap a whole word if it could fit on a line by itself.     "
 
-	innerContainer := tooey.NewContainer()
+	themeWithRightJustify := *themes.ThemeRetroTerminalOrange
+	themeWithRightJustify.Text.Align = tooey.AlignRight
+	text3 := widgets.NewText(&themeWithRightJustify)
+	text3.SetBorderCharacters(tooey.RoundedBarBorderChars)
+	text3.Title.Content = "Right Justified"
+	text3.Content = "This is some big  text  to  fill  some space.      This text should be justifying right once RightJustify is implemented (hopefully soon) and otherwise behaving the same as LeftJustified just opposite.                 "
+
+	innerContainer := tooey.NewContainer(themes.ThemeRetroTerminalGreen)
 	innerContainer.Direction = tooey.FlexColumn
-	innerContainer.SetTheme(themes.ThemeRetroTerminalOrange)
 	innerContainer.Title.Content = "Inner Container"
 
 	innerContainer.Wrap(
 		tooey.NewFlexChild(1, text3),
-		tooey.NewFlexChild(1, text3),
+		tooey.NewFlexChild(1, text2Full),
 	)
 
 	outerContainer.Wrap(
@@ -64,8 +72,26 @@ func main() {
 		tooey.NewFlexChild(5, innerContainer),
 	)
 
-	tooey.Render(outerContainer)
+	for {
+		tooey.Render(outerContainer)
 
-	time.Sleep(time.Duration(time.Second * 25))
+		ev := tooey.PollEvents()
+
+		switch ev := ev.(type) {
+		case *tcell.EventResize:
+			x, y := tooey.DrawableDimensions()
+			outerContainer.SetRect(0, 0, x, y)
+			tooey.Render(outerContainer)
+		case *tcell.EventKey:
+			if ev.Key() == tcell.KeyEnter {
+				tooey.Render(outerContainer)
+				continue
+			}
+			tooey.Close()
+			return
+		}
+	}
+
+	time.Sleep(time.Duration(time.Second * 5))
 
 }

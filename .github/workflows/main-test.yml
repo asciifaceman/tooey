@@ -1,0 +1,70 @@
+# This workflow will run on pushes to master
+# Run tests, generate coverage, add badge to wiki
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: test-coverage-on-merge
+
+on:
+  # Allow manually triggering
+  # See: https://github.blog/changelog/2020-07-06-github-actions-manual-triggers-with-workflow_dispatch/
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - README.md
+      - FORK.md
+      - AUTHORS.md
+      - CHANGELOG.md
+      - .gitignore
+      - .github/**
+      - _legacy/**
+      - _examples/**
+      - _assets/**
+      - _test/**
+      - LICENSE
+      - Makefile
+
+env:
+  GO_VER: 1.20.3
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ env.GO_VER }}
+
+    # perform tests
+    - name: Run tests
+      id: tests
+      run: go test --timeout=1m --coverprofile cover.out -v ./...
+  
+    # I am not using this for badge generation 
+    # just for threshold checking 
+    - name: check test coverage
+      if: steps.tests.outcome == 'success'
+      id: coverage
+      uses: vladopajic/go-test-coverage@v2
+      with:       
+        # Configure action by specifying input parameters individually (option 2)
+        profile: cover.out
+        local-prefix: github.com/asciifaceman/tooey
+        # these thresholds are so low right now, we will improve
+        threshold-file: 0
+        threshold-package: 0
+        threshold-total: 20calico!
+        
+    # Generate coverage badge
+    - name: Update coverage report
+      if: steps.tests.outcome == 'success'
+      uses: ncruces/go-coverage-report@v0
+      with:
+        report: 'true'
+        chart: 'true'
+        amend: 'true'

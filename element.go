@@ -4,17 +4,18 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-// NewElement returns a stable empty Element
-func NewElement() *Element {
-	e := &Element{
-		Rectangle: NewRectangle(nil),
-		Border:    NewDefaultBorder(nil),
-		Title:     NewTitle(),
-		Theme:     DefaultTheme,
+// NewElement returns a stable empty Element ready to be modified
+func NewElement(theme *Theme) *Element {
+	if theme == nil {
+		theme = DefaultTheme
 	}
 
-	e.Rectangle.Padding = NewDefaultPadding()
-	e.SetTheme(DefaultTheme)
+	e := &Element{
+		Rectangle: NewRectangle(nil),
+		Border:    NewDefaultBorder(theme),
+		Title:     NewTitle(theme),
+		Theme:     theme,
+	}
 
 	return e
 }
@@ -29,18 +30,26 @@ type Element struct {
 	Title  *Title
 }
 
+// SetTheme will set the theme of the element
 func (e *Element) SetTheme(theme *Theme) {
 	e.Theme = theme
-	e.Border.Style = theme.Border
-	e.Title.Style = theme.Title
+	e.Border.Theme = theme
+	e.Title.Theme = theme
 }
 
+// SetBorderCharacters allows you to set the border characters
+// for an element without touching the theme
+func (e *Element) SetBorderCharacters(chars *Chars) {
+	e.Border.SetChars(chars)
+}
+
+// Draw call on the element to write to the tcell.Screen
 func (e *Element) Draw(s tcell.Screen) {
 
 	// Draw body of the element
-	for row := e.Y1(); row <= e.Y2(); row++ {
-		for col := e.X1(); col <= e.X2(); col++ {
-			s.SetContent(col, row, ' ', nil, e.Theme.Element.Style)
+	for y := e.Y1(); y < e.Y2(); y++ {
+		for x := e.X1(); x < e.X2(); x++ {
+			s.SetContent(x, y, ' ', nil, e.Theme.Element.Style)
 		}
 	}
 

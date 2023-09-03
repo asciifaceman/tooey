@@ -43,6 +43,17 @@ func Close() {
 	}
 }
 
+// GetRootScreen returns the root screen tooey writes to
+func GetRootScreen() *tcell.Screen {
+	return &scrn
+}
+
+// PollEvents returns a poll of events for the
+// root screen
+func PollEvents() tcell.Event {
+	return scrn.PollEvent()
+}
+
 // DrawableDimensions is the same as TerminalDimensions -1 to represent visibly drawable space in
 // most terminals
 func DrawableDimensions() (int, int) {
@@ -57,6 +68,11 @@ func TerminalDimensions() (int, int) {
 	scrn.Sync()
 	width, height := scrn.Size()
 	return width, height
+}
+
+// Sync ...
+func Sync() {
+	scrn.Sync()
 }
 
 // Clear the global screen
