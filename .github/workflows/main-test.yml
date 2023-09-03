@@ -58,7 +58,7 @@ jobs:
         # these thresholds are so low right now, we will improve
         threshold-file: 0
         threshold-package: 0
-        threshold-total: 20calico!
+        threshold-total: 20
         
     # Generate coverage badge
     - name: Update coverage report
