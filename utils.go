@@ -1,7 +1,3 @@
-// Copyright 2017 Zack Guo <zack.y.guo@gmail.com>. All rights reserved.
-// Use of this source code is governed by a MIT license that can
-// be found in the LICENSE file.
-
 package tooey
 
 import (
@@ -153,6 +149,7 @@ func CheckWhichPositionHasFewest(positions []int) int {
 	lowestCount, _ := GetMaxIntFromSlice(positions)
 	if lowestCount == 0 {
 		// TODO: figure out what to do here, tighten this up
+		// I mean it works for now but will we find a condition when it doesn't
 		return 0
 	}
 
