@@ -9,6 +9,7 @@ package widgets
 import (
 	"fmt"
 	"image"
+	"strings"
 	"unicode"
 
 	"github.com/asciifaceman/tooey"
@@ -87,11 +88,11 @@ func (t *Text) Draw(s tcell.Screen) {
 		case tooey.AlignLeft:
 			alignedContent = t.ProcessLeftAlignment(contentRect)
 		case tooey.AlignCenter:
-			//alignedContent = t.ProcessCenterAlignment(contentRect)
+			alignedContent = t.ProcessCenterAlignment(contentRect)
 		case tooey.AlignRight:
-			//alignedContent = t.ProcessRightAlignment(contentRect)
+			alignedContent = t.ProcessRightAlignment(contentRect)
 		case tooey.AlignFull:
-			//alignedContent = t.ProcessFullAlignment(contentRect)
+			alignedContent = t.ProcessFullAlignment(contentRect)
 		}
 
 		// aligned content is a precalculated grid so
@@ -132,32 +133,12 @@ func (t *Text) Draw(s tcell.Screen) {
 
 }
 
-// ProcessUnwrapped ...
+// FillRuneBuffer prefills a buffer of size image.Rectangle for
+// filling drawable text areas
 //
-// returns [y][x]rune
-func (t *Text) ProcessUnwrapped(x int, maxWidth int) map[int]rune {
-	draw := t.Content
-	if runewidth.StringWidth(t.Content) > maxWidth {
-		draw = runewidth.Truncate(t.Content, maxWidth, string(tooey.ELLIPSES))
-
-	}
-
-	processed := map[int]rune{}
-
-	col := x
-	for _, r := range draw {
-
-		processed[x] = r
-		col++
-	}
-
-	return processed
-}
-
-type RuneRow struct {
-	Test [][]rune
-}
-
+// This is unfortunately destructive and prevents things like overlapping
+// which may or may not be desirable but it was the way I could think of
+// to prepare a buffer for managing alignment of text within a text space
 func (t *Text) FillRuneBuffer(r image.Rectangle) [][]rune {
 	buf2 := make([][]rune, r.Dy())
 
@@ -174,7 +155,10 @@ func (t *Text) FillRuneBuffer(r image.Rectangle) [][]rune {
 	return buf2
 }
 
-// ProcessLeftAlignment ...
+// ProcessLeftAlignment accepts a space of image.Rectangle and processes
+// Text.Content within that space to be left justified, and attempt to
+// wrap word-aware when possible. If the word will fit on a line by itself
+// it will wrap, otherwise it will wrap mid-word.
 //
 // returns [y][x]rune
 func (t *Text) ProcessLeftAlignment(r image.Rectangle) [][]rune {
@@ -183,6 +167,8 @@ func (t *Text) ProcessLeftAlignment(r image.Rectangle) [][]rune {
 	contentLength := len(content)
 	processed := t.FillRuneBuffer(r)
 
+	// if the entire content's length is less than the width of
+	// the image.Rectangle just spew it really quick and return early
 	if contentLength < r.Dx() {
 		for x := 0; x < contentLength; x++ {
 			processed[0][x] = content[x]
@@ -196,13 +182,6 @@ func (t *Text) ProcessLeftAlignment(r image.Rectangle) [][]rune {
 	for y := 0; y < r.Dy(); y++ {
 
 		for x := 0; x < r.Dx(); x++ {
-
-			if x == 0 {
-				// trim leading space on first cell of a row
-				if content[offset] == ' ' {
-					offset++
-				}
-			}
 
 			// Attempt to wrap early if a word won't fit
 			// but only if it fits in the drawable width to start with
@@ -231,39 +210,58 @@ func (t *Text) ProcessLeftAlignment(r image.Rectangle) [][]rune {
 			}
 
 		}
+		block := processed[y]
+		block = tooey.ShiftRuneWhitespaceToRight(block)
+		processed[y] = block
 	}
 
-	//content := []rune(t.Content)
-	//contentLength := len(content)
-	//maxLineWidth := r.Dx()
-	//
-	//y := r.Min.Y
-	//x := r.Min.X
-	//y2 := r.Max.Y
-	//x2 := r.Max.X
-	//
 	return processed
 }
 
-// ProcessRightAlignment ...
-func (t *Text) ProcessRightAlignment(r image.Rectangle) map[int]map[int]rune {
-	processed := map[int]map[int]rune{}
+// ProcessRightAlignment accepts a space of image.Rectangle and processes
+// Text.Content within that space to be right justified and attempt to
+// wrap word-aware when possible. If the word will fit on a line by itself
+// it will wrap, otherwise it will wrap mid-word
+//
+// returns [y][x]rune
+func (t *Text) ProcessRightAlignment(r image.Rectangle) [][]rune {
+	leftAligned := t.ProcessLeftAlignment(r)
 
-	return processed
+	for y := 0; y < r.Dy(); y++ {
+		block := leftAligned[y]
+		right := tooey.ShiftRuneWhitespaceToLeft(block)
+		leftAligned[y] = right
+	}
+	return leftAligned
 }
 
 // ProcessCenterAlignment ...
-func (t *Text) ProcessCenterAlignment(r image.Rectangle) map[int]map[int]rune {
-	processed := map[int]map[int]rune{}
+func (t *Text) ProcessCenterAlignment(r image.Rectangle) [][]rune {
+	leftAligned := t.ProcessLeftAlignment(r)
 
-	return processed
+	for y := 0; y < r.Dy(); y++ {
+		block := leftAligned[y]
+		full := tooey.SpreadWhitespaceAcrossSliceInterior(block)
+		leftAligned[y] = full
+	}
+
+	return leftAligned
 }
 
 // ProcessFullAlignment ...
-func (t *Text) ProcessFullAlignment(r image.Rectangle) map[int]map[int]rune {
-	processed := map[int]map[int]rune{}
+func (t *Text) ProcessFullAlignment(r image.Rectangle) [][]rune {
+	cleaned := strings.ReplaceAll(t.Content, "  ", " ")
+	t.Content = cleaned
 
-	return processed
+	leftAligned := t.ProcessLeftAlignment(r)
+
+	for y := 0; y < r.Dy(); y++ {
+		block := leftAligned[y]
+		full := tooey.SpreadWhitespaceAcrossSliceInterior(block)
+		leftAligned[y] = full
+	}
+
+	return leftAligned
 }
 
 // Draw ...
@@ -272,9 +270,6 @@ func (t *Text) Draw2(s tcell.Screen) {
 
 	row := t.Rectangle.Min.Y + t.Padding.Top
 	col := t.Rectangle.Min.X + t.Padding.Left
-
-	// TODO: Handle zero width characters
-	// TODO: Handle word-aware wrapping
 
 	wrapped := "&"
 	previousRune := rune(wrapped[0])
@@ -343,14 +338,24 @@ func (t *Text) Draw2(s tcell.Screen) {
 
 }
 
-func (t *Text) DrawAsChild(s tcell.Screen, rect image.Rectangle) {
-	t.Element.Draw(s)
+// ProcessUnwrapped needs rewritten...
+//
+// returns [y][x]rune
+func (t *Text) ProcessUnwrapped(x int, maxWidth int) map[int]rune {
+	draw := t.Content
+	if runewidth.StringWidth(t.Content) > maxWidth {
+		draw = runewidth.Truncate(t.Content, maxWidth, string(tooey.ELLIPSES))
 
-	// maybe this makes more sense if we go back to the drawing
-	// board with Drawable and Element and have
-	// the lowest level "Element" naturally be a container
-	// of other elements and Drawing is inherently aware of
-	// the parent's inner rect
-	// need grid and flex style layout
-	//
+	}
+
+	processed := map[int]rune{}
+
+	col := x
+	for _, r := range draw {
+
+		processed[x] = r
+		col++
+	}
+
+	return processed
 }

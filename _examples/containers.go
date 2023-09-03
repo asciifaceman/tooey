@@ -40,22 +40,29 @@ func main() {
 
 	text2 := widgets.NewText(themes.ThemeRetroTerminalGreen)
 	text2.Title.Content = "Left Justified"
-	text2.Content = "Some other text in text2 which should attempt to wrap word-aware remove leading/trailing spaces depending on justification. Word-aware wrapping will only wrap a whole word if it could fit on a line by itself."
+	text2.Content = "Some other        text in text2 which should attempt       to wrap word-aware remove leading/trailing spaces depending on justification. Word-aware wrapping will only wrap a whole word if it could fit on a line by itself.     "
 	text2.SetTheme(themes.ThemeRetroTerminalGreen)
-	//text2.Theme.Chars = tooey.RoundedBarBorderChars
 
-	text3 := widgets.NewText(themes.ThemeRetroTerminalGreen)
+	fullAlignTheme := *themes.ThemeRetroTerminalGreen
+	fullAlignTheme.Text.Align = tooey.AlignFull
+	text2Full := widgets.NewText(&fullAlignTheme)
+	text2Full.Title.Content = "Full Justified"
+	text2Full.Content = "Some other        text in text2 which should attempt to wrap word-aware remove leading/trailing spaces depending on justification. Word-aware wrapping will only wrap a whole word if it could fit on a line by itself.     "
+
+	themeWithRightJustify := *themes.ThemeRetroTerminalOrange
+	themeWithRightJustify.Text.Align = tooey.AlignRight
+	text3 := widgets.NewText(&themeWithRightJustify)
 	text3.SetBorderCharacters(tooey.RoundedBarBorderChars)
 	text3.Title.Content = "Right Justified"
-	text3.Content = "This is some big text to fill some space. This text should be justifying right once RightJustify is implemented (hopefully soon) and otherwise behaving the same as LeftJustified just opposite."
+	text3.Content = "This is some big  text  to  fill  some space.      This text should be justifying right once RightJustify is implemented (hopefully soon) and otherwise behaving the same as LeftJustified just opposite.                 "
 
-	innerContainer := tooey.NewContainer(themes.ThemeRetroTerminalOrange)
+	innerContainer := tooey.NewContainer(themes.ThemeRetroTerminalGreen)
 	innerContainer.Direction = tooey.FlexColumn
 	innerContainer.Title.Content = "Inner Container"
 
 	innerContainer.Wrap(
 		tooey.NewFlexChild(1, text3),
-		tooey.NewFlexChild(1, text3),
+		tooey.NewFlexChild(1, text2Full),
 	)
 
 	outerContainer.Wrap(
