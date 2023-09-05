@@ -2,10 +2,19 @@ package tooey
 
 import "github.com/gdamore/tcell/v2"
 
-// Color is an integer from -1 to 255
-// -1 = ColorClear
-// 0-255 = Xterm colors
-type Color tcell.Color
+// NewStyle returns a blank Style
+func NewStyle() *Style {
+	return WrapStyle(tcell.StyleDefault)
+}
+
+// WrapStyle returns a Tooey Style with the given tcell.Style
+func WrapStyle(s tcell.Style) *Style {
+	return &Style{
+		Style: s,
+	}
+}
+
+// AppendStyle accepts a
 
 // Basic terminal colors
 const (
@@ -18,27 +27,20 @@ const (
 	ColorMagenta tcell.Color = tcell.ColorDarkMagenta
 	ColorCyan    tcell.Color = tcell.ColorLightCyan
 	ColorWhite   tcell.Color = tcell.ColorWhite
+	ColorOrange  tcell.Color = tcell.ColorOrange
 )
 
 // Style represents the style of one terminal cell
+// and contains a tcell.Style
 type Style struct {
 	tcell.Style
-	Align Alignment
-}
-
-// StyleClear represents an empty Style, with no colors or modifiers
-var StyleClear = Style{
-	Style: tcell.StyleDefault,
 }
 
 // StyleDefault represents a simple white on black default
-var StyleDefault = Style{
-	Style: tcell.StyleDefault.Foreground(ColorWhite).Background(ColorBlack),
-	Align: AlignFull,
-}
+var StyleDefault = NewStyle()
 
 // StyleClassicTerminal is a classic green-on-black terminal styling
-var StyleClassicTerminal = Style{
-	Style: tcell.StyleDefault.Foreground(tcell.ColorLightGreen).Background(tcell.ColorBlack),
-	Align: AlignFull,
-}
+var StyleClassicTerminal = WrapStyle(NewStyle().Foreground(tcell.ColorLimeGreen).Background(tcell.ColorBlack))
+
+// StyleSoftClassicTerminal is a classic green-on-black with a softer green
+var StyleSoftClassicTerminal = WrapStyle(NewStyle().Foreground(tcell.ColorLightGreen).Background(tcell.ColorBlack))

@@ -1,5 +1,7 @@
 package tooey
 
+import "github.com/gdamore/tcell/v2"
+
 const (
 	DOT      = '•'
 	ELLIPSES = '…'
@@ -9,6 +11,26 @@ const (
 
 	COLLAPSED = '+'
 	EXPANDED  = '−'
+)
+
+const (
+	StylizedUL = '╒'
+	DefaultUL  = tcell.RuneULCorner
+	DefaultUR  = tcell.RuneURCorner
+	DefaultLL  = tcell.RuneLLCorner
+	DefaultLR  = tcell.RuneLRCorner
+	DefaultH   = tcell.RuneHLine
+	DefaultV   = tcell.RuneVLine
+	RoundedUL  = '╭'
+	RoundedUR  = '╮'
+	RoundedLL  = '╰'
+	RoundedLR  = '╯'
+	DoubleH    = '═'
+	DoubleV    = '║'
+	DoubleUL   = '╔'
+	DoubleUR   = '╗'
+	DoubleLL   = '╚'
+	DoubleLR   = '╝'
 )
 
 var (

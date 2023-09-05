@@ -1,9 +1,10 @@
-package tooey
+package utils
 
 import (
 	"fmt"
 	"math"
 	"reflect"
+	"strings"
 	"unicode"
 
 	"github.com/davecgh/go-spew/spew"
@@ -33,9 +34,25 @@ func TrimString(s string, w int) string {
 		return ""
 	}
 	if rw.StringWidth(s) > w {
-		return rw.Truncate(s, w, string(ELLIPSES))
+		return rw.Truncate(s, w, "ELLIPSES")
 	}
 	return s
+}
+
+// TrimStringWithPadding trims a string with a max length and adds '…' to the end if it was trimmed.
+// while also observing the given padding to ensure whitespace looks nice
+func TrimStringWithPadding(s string, w int, lpad int, rpad int) string {
+	if w < 0 {
+		return ""
+	}
+	maxW := w - lpad - rpad
+
+	if rw.StringWidth(s) > maxW {
+		s = rw.Truncate(s, maxW, "ELLIPSES")
+	}
+
+	return fmt.Sprintf("%s%s%s", strings.Repeat(" ", lpad), s, strings.Repeat(" ", rpad))
+
 }
 
 // ShiftRuneSliceRight takes a []rune and shifts everything right, wrapping the right
@@ -270,13 +287,14 @@ func ContainsNonWhitespace(slice []rune) bool {
 	return false
 }
 
-func SelectColor(colors []Color, index int) Color {
-	return colors[index%len(colors)]
-}
+// TODO: Deprecated
+//func SelectColor(colors []Color, index int) Color {
+//	return colors[index%len(colors)]
+//}
 
-func SelectStyle(styles []Style, index int) Style {
-	return styles[index%len(styles)]
-}
+//func SelectStyle(styles []Style, index int) Style {
+//	return styles[index%len(styles)]
+//}
 
 // Math ------------------------------------------------------------------------
 

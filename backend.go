@@ -14,7 +14,8 @@ var scrn tcell.Screen
 // Init initializes the screen and sets default styling
 func Init() error {
 	// This says it is deprecated and you only need to import the package
-	// but autoimport removes unused imports so...
+	// but autoimport removes unused imports so not sure if they meant
+	// importing tcell or encoding...
 	encoding.Register()
 
 	s, err := tcell.NewScreen()
@@ -25,9 +26,9 @@ func Init() error {
 		return err
 	}
 
-	defaultStyle := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
-	s.SetStyle(defaultStyle)
+	s.SetStyle(StyleDefault.Style)
 	s.Clear()
+	s.Sync()
 
 	scrn = s
 
@@ -44,6 +45,7 @@ func InitSim() error {
 	defaultStyle := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite)
 	s.SetStyle(defaultStyle)
 	s.Clear()
+	s.Sync()
 	scrn = s
 	return nil
 }
@@ -57,6 +59,11 @@ func Close() {
 	}
 }
 
+// SetRootTheme sets the global theme to the Element style of the passed Theme
+func SetRootTheme(theme Theme) {
+	scrn.SetStyle(GetCellStyle(theme, &Element{}).Style)
+}
+
 // GetRootScreen returns the root screen tooey writes to
 func GetRootScreen() tcell.Screen {
 	return scrn
@@ -66,6 +73,15 @@ func GetRootScreen() tcell.Screen {
 // root screen
 func PollEvents() tcell.Event {
 	return scrn.PollEvent()
+}
+
+// Resize handles resize events by syncing the screen and returning the new
+// drawable dimensions (gently padded to prevent off-screen draws)
+//
+// returns x, y
+func Resize() (int, int) {
+	Sync()
+	return DrawableDimensions()
 }
 
 // DrawableDimensions is the same as TerminalDimensions -1 to represent visibly drawable space in
@@ -79,12 +95,11 @@ func DrawableDimensions() (int, int) {
 // but it often is clipped on the right and buttom
 // Use DrawableDimensions to get visible terminal dimensions
 func TerminalDimensions() (int, int) {
-	scrn.Sync()
 	width, height := scrn.Size()
 	return width, height
 }
 
-// Sync ...
+// Sync should only be called in limited circumstances
 func Sync() {
 	scrn.Sync()
 }
@@ -92,4 +107,26 @@ func Sync() {
 // Clear the global screen
 func Clear() {
 	scrn.Clear()
+}
+
+// DefaultLoop is a very simple loop mostly used in the examples
+// but is viable if you want a very simple runtime loop that renders
+// a parent container and waits for keypress to exit while responding
+// to resize events
+func DefaultLoop(parent *Container) {
+	for {
+		Render(parent)
+
+		ev := PollEvents()
+
+		switch ev.(type) {
+		case *tcell.EventResize:
+			x, y := DrawableDimensions()
+			parent.SetRect(0, 0, x, y)
+			Render(parent)
+		case *tcell.EventKey:
+			Close()
+			return
+		}
+	}
 }

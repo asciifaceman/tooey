@@ -1,63 +1,57 @@
 package tooey
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/gdamore/tcell/v2"
 )
 
 // NewTitle returns a basic empty title
-func NewTitle(theme *Theme) *Title {
-	if theme == nil {
-		theme = DefaultTheme
-	}
-
+func NewTitle() *Title {
 	return &Title{
 		Padding: NewTitlePadding(),
-		Theme:   theme,
+		Theme:   DefaultTheme,
 	}
 }
 
 // Title represents a rendered title in the header of an Element
+// TODO: Alignment (L / R / C)
 type Title struct {
 	Content string
 	Padding *Padding
-	Theme   *Theme
+	Theme   Theme
 }
 
-// Draw the title
+// SetTheme sets the title's theme
+func (t *Title) SetTheme(theme Theme) {
+	t.Theme = theme
+}
+
+// Set sets the title's content
+func (t *Title) Set(content string) {
+	t.Content = content
+}
+
+/*
+Draw the title to the given rect's dimensions within the screen
+*/
 func (t *Title) Draw(s tcell.Screen, rect *Rectangle) {
-	if len(t.Content) == 0 {
+	contentLength := len(t.Content)
+
+	if contentLength == 0 {
 		return
 	}
 
-	w := rect.DrawableWidth()
-	//draw := TrimString(t.Content, w-1)
+	row := rect.Y1()      // draw on rect's top most line
+	col := rect.InnerX1() // don't draw before rect's padded start point
+	end := rect.InnerX2() // don't draw past rect's padded end point
 
-	row := rect.Y1()
-	col := rect.X1() + rect.Padding.Left
+	available := end - col
 
-	leftPad := ""
-	if t.Padding.Left > 0 {
-		leftPad = strings.Repeat(" ", t.Padding.Left)
-	}
-	rightPad := ""
-	if t.Padding.Right > 0 {
-		rightPad = strings.Repeat(" ", t.Padding.Right)
-	}
-
-	draw := TrimString(t.Content, w-len(leftPad)-len(rightPad)-1)
-
-	draw = fmt.Sprintf("%s%s%s", leftPad, draw, rightPad)
+	// Pad and trim
+	draw := TrimStringWithPadding(t.Content, available-t.Padding.TotalWidth(), t.Padding.Left, t.Padding.Right)
 
 	for _, r := range draw {
-		s.SetContent(col, row, r, nil, t.Theme.Title.Style)
+		s.SetContent(col, row, r, nil, GetCellStyle(t.Theme, t).Style)
 		col++
-
-		if col+1 > rect.X2()-rect.Padding.Right {
-			// add ... at some point
-			break
-		}
 	}
+
 }

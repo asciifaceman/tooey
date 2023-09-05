@@ -18,7 +18,7 @@ type Drawable interface {
 	// SetRect x1, y1, x2, y2
 	SetRect(int, int, int, int)
 	Draw(tcell.Screen)
-	SetTheme(*Theme)
+	SetTheme(Theme)
 	sync.Locker
 }
 

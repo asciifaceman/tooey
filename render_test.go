@@ -10,7 +10,7 @@ func TestRender(t *testing.T) {
 	defer Close()
 	s := GetRootScreen()
 
-	e := NewElement(nil)
+	e := NewElement()
 	e.SetRect(0, 0, 15, 10)
 	e.Title.Content = "test"
 

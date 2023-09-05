@@ -1,4 +1,4 @@
-package tooey
+package utils
 
 import (
 	"testing"

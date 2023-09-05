@@ -8,6 +8,16 @@ type Padding struct {
 	Bottom int
 }
 
+// TotalWidth returns Left + Right
+func (p *Padding) TotalWidth() int {
+	return p.Left + p.Right
+}
+
+// TotalHeight returns Top + Bottom
+func (p *Padding) TotalHeight() int {
+	return p.Top + p.Bottom
+}
+
 // NewDefaultPadding returns a global padding of 1 all around
 // which can account for a basic border
 func NewDefaultPadding() *Padding {
@@ -23,10 +33,8 @@ func NewDefaultPadding() *Padding {
 // more room to breathe
 func NewTitlePadding() *Padding {
 	return &Padding{
-		Left:   2,
-		Top:    1,
-		Right:  2,
-		Bottom: 1,
+		Left:  2,
+		Right: 2,
 	}
 }
 

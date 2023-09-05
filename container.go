@@ -16,11 +16,11 @@ const (
 // NewContainer returns a new default configuration Container
 //
 // A theme can be passed at this time or nil for defaults or to configure later
-func NewContainer(theme *Theme) *Container {
+func NewContainer() *Container {
 	return &Container{
 		Direction: FlexRow,
-		Element:   *NewElement(theme),
-		Theme:     theme,
+		Element:   *NewElement(),
+		//Theme:     DefaultTheme,
 	}
 }
 
@@ -55,6 +55,8 @@ func NewFlexChild(grow float64, i ...interface{}) ContainerChild {
 		Grow:     grow,
 	}
 }
+
+//
 
 // Wrap embeds the given objects within the container
 // using a top-level container that will fill it's available space
